@@ -1,22 +1,19 @@
-// app/page.tsx (o el archivo correspondiente)
+import { fetchGames } from '@/app/api/games';
 
-import { Game } from '@/interfaces/games';
-import { fetchGames } from './api/games'; // Asumiendo que tienes una función fetchGames en api
+import { GameList } from './components';
+import { notFound } from 'next/navigation';
 
-export default async function Page() {
-  const games: Game[] = await fetchGames();
+export default async function HomePage() {
+  const games = await fetchGames();
+
+  if (!games) {
+    notFound();
+  }
 
   return (
-    <div>
-      <h2>Saved games</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {games.map((game) => (
-          <div key={game.checksum} className="border p-4 rounded-lg">
-            <h2 className="text-xl font-bold">{game.name}</h2>
-            <p>{game.cover}</p>
-          </div>
-        ))}
-      </div>
+    <div className="p-8">
+      <h1 className="text-4xl font-bold mb-6">Saved games</h1>
+      <GameList games={games} />
     </div>
   );
 }

@@ -3,8 +3,7 @@ export interface Game {
   checksum: string; // Home
   name: string; // Home
   slug: string; // Home
-  url: string;
-  cover: number; // Home
+  cover: { url: string };
   involved_companies: number[]; // Detail
   rating: number | null; // Detail
   total_rating?: number | null;
