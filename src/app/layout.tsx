@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { fontFamily } from '@/config/fonts';
-import { Navbar } from './components';
+import { Navbar, Toast } from './components';
 
 export const metadata: Metadata = {
   title: 'Gaming Haven Z',
@@ -20,6 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${fontFamily.className} antialiased`}>
         <Navbar />
+        <Toast />
         <main className="pt-[144px]">{children}</main>
       </body>
     </html>

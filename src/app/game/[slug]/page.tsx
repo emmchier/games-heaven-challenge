@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+
 import LoadingSkeleton from './LoadingSkeleton';
 import GameDetailsContent from './GameDetailsContent';
 import { notFound } from 'next/navigation';

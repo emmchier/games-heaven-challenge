@@ -1,5 +1,7 @@
 'use client';
 import { usePathname, useRouter } from 'next/navigation';
+import { SearchInput, Text } from '@/app/components';
+import { Search } from 'lucide-react';
 
 export const Navbar = () => {
   const router = useRouter();
@@ -8,7 +10,7 @@ export const Navbar = () => {
   const isInGameDetail = pathname.includes('/game/');
 
   return (
-    <nav className="bg-transparent h-[144px] w-full fixed top-0 left-0 flex items-center justify-between px-8 z-50">
+    <header className="bg-transparent w-full fixed top-0 left-0 px-8 py-[40px] z-50">
       <div
         onClick={() => {
           if (isInGameDetail) {
@@ -19,8 +21,15 @@ export const Navbar = () => {
         }}
         className="text-red-800 text-3xl font-bold cursor-pointer"
       >
-        {isInGameDetail ? 'Back' : 'Gaming Haven Z'}
+        <Text type="title" weight="bold" className="mb-6">
+          {isInGameDetail ? 'Back' : 'Gaming Haven Z'}
+        </Text>
       </div>
-    </nav>
+      <SearchInput
+        prefix={<Search size={24} />}
+        options={['Opción 1', 'Opción 2', 'Opción 3']}
+        hideLabel
+      />
+    </header>
   );
 };
