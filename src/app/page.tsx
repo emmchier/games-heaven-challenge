@@ -1,7 +1,7 @@
 import { fetchGames } from '@/app/api/games';
 
-import { GameList } from './components';
 import { notFound } from 'next/navigation';
+import { HomeClientPage } from './components/client-pages/HomeClientPage';
 
 export default async function HomePage() {
   const games = await fetchGames();
@@ -10,10 +10,5 @@ export default async function HomePage() {
     notFound();
   }
 
-  return (
-    <div className="p-8">
-      <h1 className="text-4xl font-bold mb-6">Saved games</h1>
-      <GameList games={games} />
-    </div>
-  );
+  return <HomeClientPage games={games} />;
 }

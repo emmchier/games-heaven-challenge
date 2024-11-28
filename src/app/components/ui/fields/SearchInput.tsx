@@ -1,8 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import { Info, X, XCircle } from 'lucide-react';
+import Image from 'next/image';
+import { getImageUrl } from '@/utils/funtions';
+import { useRouter } from 'next/navigation';
+
+interface Option {
+  name: string;
+  slug: string;
+  cover: {
+    url: string;
+  };
+}
 
 interface SearchInputProps {
   name?: string;
@@ -18,7 +29,7 @@ interface SearchInputProps {
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
-  options: string[];
+  options: Option[];
   helperText?: string;
   state?: 'enabled' | 'error' | 'disabled';
   className?: string;
@@ -45,28 +56,42 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   onMouseLeave,
 }) => {
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [filteredOptions, setFilteredOptions] = useState<string[]>([]);
+  const [filteredOptions, setFilteredOptions] = useState<Option[]>([]);
   const [activeIndex, setActiveIndex] = useState<number | null>(null); // Nuevo: Índice de la opción activa
   const [isOptionsVisible, setIsOptionsVisible] = useState<boolean>(false); // Para mostrar el menú
+  const containerRef = useRef<HTMLInputElement | null>(null);
+  const { push } = useRouter();
+
+  const handleOptionClick = (option: Option) => {
+    push(`/game/${option.slug}`);
+    setFilteredOptions([]);
+    setActiveIndex(null);
+    setTimeout(() => {
+      setIsOptionsVisible(false);
+    }, 100);
+  };
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (
+      containerRef.current &&
+      !containerRef.current.contains(e.target as Node)
+    ) {
+      setIsOptionsVisible(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (controlledValue) {
       setSearchTerm(controlledValue);
     }
   }, [controlledValue]);
-
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = options.filter((option) =>
-        option.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
-      setFilteredOptions(filtered);
-      setIsOptionsVisible(true); // Mostrar el menú cuando hay resultados
-    } else {
-      setFilteredOptions([]);
-      setIsOptionsVisible(false); // Ocultar el menú si no hay términos
-    }
-  }, [searchTerm, options]);
 
   const handleReset = () => {
     setSearchTerm('');
@@ -79,15 +104,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({
     }
   };
 
-  const handleOptionClick = (option: string) => {
-    setSearchTerm(option);
-    setFilteredOptions([]);
-    setActiveIndex(null);
-    setTimeout(() => {
-      setIsOptionsVisible(false);
-    }, 100);
-  };
-
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
     setSearchTerm(newValue);
@@ -96,7 +112,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       onChange(event);
     }
 
-    // Si no hay valor de búsqueda, forzamos el cierre del menú
     if (!newValue) {
       setIsOptionsVisible(false);
       setFilteredOptions([]);
@@ -183,7 +198,11 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   });
 
   return (
-    <div className={`relative w-full group ${className}`} aria-live="polite">
+    <div
+      ref={containerRef}
+      className={`relative w-full group ${className}`}
+      aria-live="polite"
+    >
       {!hideLabel && (
         <label
           htmlFor={name}
@@ -234,6 +253,13 @@ export const SearchInput: React.FC<SearchInputProps> = ({
           aria-describedby={`${name}-focus`}
           aria-disabled={isDisabled}
           disabled={isDisabled}
+          onClick={() => {
+            const filtered = options.filter((option) =>
+              option.name.toLowerCase().includes(searchTerm.toLowerCase()),
+            );
+            setFilteredOptions(filtered);
+            setIsOptionsVisible(true);
+          }}
           className={clsx(
             baseStyles,
             paddingLeft,
@@ -243,6 +269,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
             focusStyles,
           )}
         />
+
         {searchTerm && !isDisabled && (
           <button
             type="button"
@@ -256,25 +283,46 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       </div>
       {isOptionsVisible && filteredOptions.length > 0 && (
         <div className="absolute top-full mt-1 w-full border rounded-lg bg-white shadow-lg z-10">
-          {filteredOptions.map((option, index) => (
-            <div
-              key={index}
-              onClick={() => handleOptionClick(option)}
-              onMouseEnter={() => handleOptionMouseEnter(index)}
-              className={clsx(
-                'px-4 py-4 cursor-pointer flex items-center',
-                index === activeIndex ? 'bg-gray-200' : 'hover:bg-gray-100',
-              )}
-              role="option"
-              aria-selected={index === activeIndex}
-              tabIndex={-1} // Hacer que las opciones sean seleccionables con teclado
-              style={{ height: '64px' }}
-            >
-              {option}
-            </div>
-          ))}
+          {filteredOptions.map((option, index) => {
+            const imageUrl = getImageUrl(option.cover?.url, 'cover_small'); // Obtener la URL formateada
+            return (
+              <div
+                key={index}
+                onClick={() => handleOptionClick(option)}
+                onMouseEnter={() => handleOptionMouseEnter(index)}
+                className={clsx(
+                  'px-4 py-4 cursor-pointer flex items-center',
+                  index === activeIndex ? 'bg-gray-200' : 'hover:bg-gray-100',
+                )}
+                role="option"
+                aria-selected={index === activeIndex}
+                tabIndex={-1} // Hacer que las opciones sean seleccionables con teclado
+                style={{ height: '42px' }}
+              >
+                {imageUrl ? (
+                  <div className="w-[30px] h-[30px] overflow-hidden rounded-md">
+                    <Image
+                      src={imageUrl} // Usar la URL formateada
+                      alt={option.name}
+                      width={50} // Deja el ancho fijo en el contenedor
+                      height={50} // Mantén la altura en el contenedor
+                      className="object-contain" // Asegura que la imagen mantenga su relación de aspecto
+                      priority
+                      sizes="(max-width: 768px) 100vw, 300px"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-[30px] h-[30px] bg-gray-300 rounded-md flex items-center justify-center">
+                    <span className="text-white text-xs">No Image</span>
+                  </div>
+                )}
+                {option.name}
+              </div>
+            );
+          })}
         </div>
       )}
+
       {helperText && (
         <p id={`${name}-helper`} className={helperTextStyles}>
           <span className="mr-1">

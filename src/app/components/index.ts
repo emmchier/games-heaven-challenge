@@ -11,3 +11,6 @@ export * from './ui/fields/SearchInput';
 export * from './games/GameList';
 export * from './games/GameCard';
 export * from './games/GameListSkeleton';
+
+// pages
+export * from './client-pages/HomeClientPage';
